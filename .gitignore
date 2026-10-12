@@ -1,0 +1,14 @@
+node_modules/
+.DS_Store
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.log
+coverage/
+dist/
+build/
+out/
+.cache/
+.tmp/
