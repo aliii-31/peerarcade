@@ -25,8 +25,11 @@ npm ci
 npm start
 ```
 
-A window displays **PeerArcade**. The terminal should print
-`PeerArcade worker ready (networking disabled)` and `PeerArcade window loaded`.
+A window displays **PeerArcade**, a local-worker status, and a **Check worker**
+button. On success it shows “Local worker ready — pong received. Networking
+disabled.” Checks run at startup, on click, and every five seconds. A failed or
+three-second timed-out check shows “Local worker unavailable.” This is local
+process health, not a connection to another player.
 Close the window to quit the app and stop its worker. `npm run dev` is an alias
 for `npm start`; there is no bundler or automatic reload. Restart after edits.
 Electron may download its platform binary on first launch.
@@ -38,8 +41,11 @@ Neither a global Pear CLI nor a separate Bare installation is required.
 ## Architecture and layout
 
 ```text
-electron/main.js       Desktop window, worker startup, and shutdown
-renderer/index.html    Static application UI
+electron/main.js       Window, validated IPC handler, and worker lifecycle
+electron/preload.js    Narrow bridge available to the sandboxed renderer
+electron/worker-client.js  Ping correlation, timeout, and disconnect handling
+renderer/index.html    Heading, health status, and check button
+renderer/app.js        Requests checks and updates the visible status
 renderer/style.css     Minimal local styling
 games/                 Standalone Tic-Tac-Toe rules and API documentation
 p2p/main.mjs           Bare worker; future networking belongs here
@@ -50,13 +56,37 @@ package-lock.json      Reproducible dependency versions
 .gitignore             Dependencies, secrets, logs, and generated artifacts
 ```
 
-Electron creates the desktop window and displays ordinary HTML. Pear Runtime
-starts a separate Bare process, where future networking code will live. The
-worker currently imports Hyperswarm and sends one readiness message to Electron;
-it never constructs a swarm or joins a topic. Game rules have their own folder.
-The renderer is sandboxed, with Node integration disabled and context isolation
-enabled. A restrictive content security policy allows only local CSS. A preload
-bridge can be added when the UI actually needs to exchange messages.
+### Four application layers
+
+```text
+Renderer → Preload → Electron main → Bare worker
+Renderer ← Preload ← Electron main ← Bare worker
+```
+
+1. **Renderer** (`renderer/app.js`) updates the page and calls
+   `window.peerArcade.checkWorker()`. It has no Node or worker access.
+2. **Preload** (`electron/preload.js`) uses `contextBridge` to expose that single
+   no-argument method. It invokes the fixed `peerarcade:check-worker` channel;
+   callers cannot choose channels or forward arbitrary payloads.
+3. **Main** (`electron/main.js`) owns the window and worker. It checks that IPC
+   comes from this window's main frame at the local renderer URL, with no arguments.
+   The helper `electron/worker-client.js` sends a numbered ping and waits for its
+   matching pong, returning `{ status: 'ready', reply: 'pong' }` or, on failure,
+   `{ status: 'unavailable', reply: null }` to the page through the preload promise.
+4. **Bare** (`p2p/main.mjs`) accepts only newline-delimited `ping:<id>` messages
+   and answers `pong:<id>`. It imports Hyperswarm but never creates a swarm.
+
+Stream chunks are not message boundaries, so both ends accumulate complete lines.
+The client shares one pending check, times out after three seconds, ignores stale
+reply IDs, and rejects checks when the worker disconnects. Quit closes the worker
+and clears any pending check. Restart the application after a worker failure;
+there is no automatic worker restart in this issue.
+
+This separation keeps privileged desktop code out of the page and leaves future
+networking in its own process. `games/tictactoe.js` stays independent and unchanged.
+Context isolation, renderer sandboxing, and disabled Node integration remain in
+place. The CSP permits local scripts/styles only; navigation and new windows are
+blocked. No new dependencies, persistence, or multiplayer features are introduced.
 
 Direct dependencies resolved in the lockfile:
 
@@ -94,3 +124,10 @@ checks, and the worker test passed; audit reported zero vulnerabilities.
 Electron launched and reported worker readiness. Visual window inspection was
 unavailable because computer-use permissions were pending. Manually confirm the
 PeerArcade heading appears when reviewing this change.
+
+Issue #4 verification includes real Bare ping/pong tests, client stream framing,
+timeouts/retries/disconnection, and isolated preload/renderer tests. The latter
+use small test doubles; they do not replace a real desktop UI check. The desktop
+was launched on macOS and logged renderer-triggered pong responses. Visual status
+and button interaction could not be inspected because computer-use permissions
+were denied. Linux and Windows remain unverified.
