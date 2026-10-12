@@ -20,8 +20,6 @@ Check `node --version` and `npm --version` before installing.
 ```sh
 git clone https://github.com/aliii-31/peerarcade.git
 cd peerarcade
-# Until Issue #2 is merged:
-git switch setup/issue-2-development-environment
 npm ci
 npm start
 ```
