@@ -1,7 +1,8 @@
 # PeerArcade
 
-A peer-to-peer mini-arcade in development. Issue #2 provides only a desktop
-window and a local Bare worker. Games, discovery, rooms, synchronization,
+A peer-to-peer mini-arcade in development. The desktop shell and local Bare
+worker are joined by a standalone [Tic-Tac-Toe engine](games/README.md). The
+engine is not yet connected to the UI. Discovery, rooms, synchronization,
 authentication, and application persistence are not implemented.
 
 ## Prerequisites
@@ -40,9 +41,9 @@ Neither a global Pear CLI nor a separate Bare installation is required.
 electron/main.js       Desktop window, worker startup, and shutdown
 renderer/index.html    Static application UI
 renderer/style.css     Minimal local styling
-games/                 Reserved for UI-independent game rules
+games/                 Standalone Tic-Tac-Toe rules and API documentation
 p2p/main.mjs           Bare worker; future networking belongs here
-test/worker.test.js    Real Bare startup and dependency-loading smoke test
+test/                  Game-rule tests and Bare startup smoke test
 package.json           Dependencies, runtime requirements, npm commands
 package-lock.json      Reproducible dependency versions
 .nvmrc                 Recommended Node version
@@ -85,7 +86,8 @@ npm start
 
 `check` validates JavaScript syntax. `test` launches a real Bare worker and checks
 that Hyperswarm imports and the readiness message arrives, without discovery.
-It does not test games, network connectivity, or the GUI. There is no build step.
+The suite also tests the standalone Tic-Tac-Toe rules. Network connectivity and
+the GUI are not tested automatically. There is no build step.
 
 Verification on macOS with Node 22.23.3 and npm 11.9.0: clean `npm ci`, syntax
 checks, and the worker test passed; audit reported zero vulnerabilities.
