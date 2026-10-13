@@ -1,12 +1,32 @@
 # v0.2.0 — P2P Multiplayer release QA
 
-**Recommendation: NO-GO pending maintainer desktop E2E verification.** Automated
-regression and real-network protocol tests pass. Visible gameplay, mouse/keyboard
-interaction and clipboard use are **BLOCKED / NOT VERIFIED** because computer-use
-permission was denied. Startup logs and fake-DOM tests do not satisfy this gate.
-No release has been tagged or published by this QA work.
+**Recommendation: GO based on maintainer manual sign-off and passing automated
+and real-network evidence.** The maintainer confirmed in the release-preparation
+request that they manually verified the desktop product and approved proceeding
+toward release. This is maintainer-provided verification, not an agent-performed
+GUI test. No scenario-by-scenario results, screenshots, test environment or exact
+manual-test commit were supplied, so individual checklist items are not newly
+marked PASS. The prior agent GUI permission limitation remains part of the
+historical evidence below. No release has been tagged or published by this work.
 
-## Environment and exact code
+## Release-preparation recheck
+
+Starting from merged main `95e60b02a702cd3ba29a70ef7506fc0ffc72b861`, the
+`release/prepare-v0.2.0` branch changes only version metadata and documentation.
+`package.json` and both root lockfile version fields now read `0.2.0`; dependency
+versions are unchanged. With the same Node 22.23.3/npm 11.9.0 command prefix below:
+
+- `npm run check`: passed (exit 0).
+- `npm test`: 82 passed, 0 failed/skipped/cancelled (exit 0).
+- `npm run test:rooms:network`: passed (exit 0), including win/draw synchronization,
+  admission, fresh-match rejoin, forced guest disconnection and clean normal exits.
+- `npm audit`: 0 vulnerabilities (exit 0).
+
+Handled socket error events occurred around departure as previously documented.
+These reruns are automated and real-network evidence, separate from the
+maintainer's manual sign-off. No application or networking code was changed.
+
+## Historical Issue #10 environment and exact code
 
 - Date: October 12, 2026, America/New_York (October 13 UTC).
 - macOS 14.5, build 23F79, Apple Silicon arm64; one computer.
@@ -52,7 +72,11 @@ performance guarantee. Network discovery timing depends on public DHT availabili
 No new unit tests were added: the meaningful coverage gaps were in real abrupt
 termination and worker exit-code checking, now covered by the integration harness.
 
-## Scenario matrix — keep evidence categories separate
+## Historical Issue #10 scenario matrix — keep evidence categories separate
+
+The manual column records the agent’s blocked attempt before maintainer sign-off.
+It is not a current release blocker. The later overall approval does not supply
+individual scenario results, so these historical entries remain unchanged.
 
 | Scenario | Automated/mocked | Real network (no BrowserWindow) | Manual desktop |
 | --- | --- | --- | --- |
@@ -160,9 +184,10 @@ is implemented or promised.
 
 ## Defects, improvements and release gates
 
-- **Release blocker QA-GUI:** complete visible desktop flow is NOT VERIFIED.
-  Tool response: `Computer Use permissions are not granted`. No screenshots or
-  mouse/keyboard/clipboard evidence is available. Maintainer sign-off is required.
+- **QA-GUI release gate satisfied by maintainer sign-off:** the maintainer confirmed
+  manual desktop verification and approved proceeding toward release. The agent's
+  earlier attempt returned `Computer Use permissions are not granted`; no agent
+  GUI pass or detailed maintainer mouse/keyboard/clipboard results are claimed.
 - **QA-CACHE:** reproduced as above; no demonstrated product failure, no production
   code fix. Isolate profiles for local two-instance QA and retain this known risk.
 - **Harness defect fixed:** the previous `room-peer.cjs` reported Electron exit 0
@@ -175,6 +200,9 @@ is implemented or promised.
   adverse-network automation. No feature work or new tracking issues added here.
 
 ## Maintainer sign-off checklist
+
+Retained as a reproducible checklist. Overall maintainer sign-off is recorded
+above; completion of each individual step was not separately confirmed.
 
 Use two independent instances on this branch. For separate disposable profiles,
 launch from two terminals (Electron's user-data switch):
@@ -202,5 +230,6 @@ Unset `PEERARCADE_TOPIC` in both terminals. Keep invitations private.
 6. Repeat the normal default-profile launch if assessing QA-CACHE's product
    impact. Record pass/fail, OS, code SHA, and sanitized failure logs.
 
-**GO requires completed desktop sign-off with no blocking defects. Until then,
-v0.2.0 remains NO-GO.** See the [draft release notes](releases/v0.2.0.md).
+**GO:** maintainer desktop sign-off satisfies the prior release gate. Known risks
+and unverified environments remain documented above. Merge, tagging and publishing
+still require separate authorization. See the [draft release notes](releases/v0.2.0.md).
