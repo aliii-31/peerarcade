@@ -1,32 +1,54 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'">
-    <title>PeerArcade</title>
-    <link rel="stylesheet" href="style.css">
-  </head>
-  <body>
-    <main>
-      <h1>PeerArcade</h1>
-      <p id="worker-status" role="status">Checking local worker…</p>
-      <button id="check-worker" type="button">Check worker</button>
-      <section aria-label="Multiplayer room">
-        <h2>Room</h2>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; script-src 'self'">
+  <title>PeerArcade</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main>
+    <header><div><p class="eyebrow">PLAY TOGETHER · PEER TO PEER</p><h1>PeerArcade</h1></div><span class="badge">Tic-Tac-Toe</span></header>
+    <div class="layout">
+      <section class="panel game" aria-label="Tic-Tac-Toe game">
+        <p id="player-symbol" class="eyebrow">Choose a room to play</p>
+        <h2 id="game-status" role="status" aria-live="polite">Create or join a room</h2>
+        <div class="board" aria-label="Game board">
+          <button id="cell-0" type="button" disabled aria-label="Row 1, column 1: empty"></button>
+          <button id="cell-1" type="button" disabled aria-label="Row 1, column 2: empty"></button>
+          <button id="cell-2" type="button" disabled aria-label="Row 1, column 3: empty"></button>
+          <button id="cell-3" type="button" disabled aria-label="Row 2, column 1: empty"></button>
+          <button id="cell-4" type="button" disabled aria-label="Row 2, column 2: empty"></button>
+          <button id="cell-5" type="button" disabled aria-label="Row 2, column 3: empty"></button>
+          <button id="cell-6" type="button" disabled aria-label="Row 3, column 1: empty"></button>
+          <button id="cell-7" type="button" disabled aria-label="Row 3, column 2: empty"></button>
+          <button id="cell-8" type="button" disabled aria-label="Row 3, column 3: empty"></button>
+        </div>
+        <p id="game-error" role="alert" class="error"></p>
+        <p class="hint">Get three in a row. Host plays X, guest plays O.</p>
+      </section>
+      <section class="panel rooms" aria-label="Multiplayer room">
+        <h2>Your room</h2>
         <p id="room-status" role="status">Not in a room</p>
-        <button id="create-room" type="button">Create Room</button>
-        <p><label>Invitation <input id="invitation" readonly size="35"></label>
-          <button id="copy-invitation" type="button" disabled>Copy</button></p>
+        <button id="create-room" class="primary" type="button">Create Room</button>
+        <label for="invitation">Your invitation</label>
+        <div class="input-row"><input id="invitation" readonly placeholder="Create a room to get an invitation"><button id="copy-invitation" type="button" disabled>Copy</button></div>
+        <p class="hint">Share privately with one friend. Anyone with this invitation can join.</p>
         <form id="join-form">
-          <label>Join invitation <input id="join-invitation" autocomplete="off" spellcheck="false" maxlength="68" required></label>
+          <label for="join-invitation">Have an invitation?</label>
+          <input id="join-invitation" autocomplete="off" spellcheck="false" maxlength="68" required placeholder="Paste your friend's invitation">
           <button id="join-room" type="submit">Join Room</button>
         </form>
-        <p><button id="leave-room" type="button" disabled>Leave Room</button></p>
-        <p id="room-error" role="alert"></p>
+        <button id="leave-room" class="quiet" type="button" disabled>Leave Room</button>
+        <p id="room-error" role="alert" class="error"></p>
+        <p class="hint">Leaving ends the match. Joining again starts a new board.</p>
       </section>
-    </main>
-    <script src="app.js"></script>
-    <script src="rooms.js"></script>
-  </body>
+    </div>
+    <footer><p id="worker-status" role="status">Checking local worker…</p><button id="check-worker" type="button">Check worker</button></footer>
+  </main>
+  <script src="app.js"></script>
+  <script src="game.js"></script>
+  <script src="rooms.js"></script>
+</body>
 </html>
