@@ -21,7 +21,7 @@ test('preload exposes only a fixed, payload-free health-check method', async () 
       }
     }
   })
-  assert.deepEqual(Object.keys(api), ['checkWorker', 'createRoom', 'joinRoom', 'leaveRoom', 'roomState', 'copyInvitation'])
+  assert.deepEqual(Object.keys(api), ['checkWorker', 'createRoom', 'joinRoom', 'leaveRoom', 'roomState', 'gameState', 'requestMove', 'copyInvitation'])
   assert.equal(await api.checkWorker('untrusted payload'), 'result')
   assert.deepEqual(calls, [['peerarcade:check-worker']])
 })
@@ -50,3 +50,16 @@ for (const succeeds of [true, false]) {
     assert.equal(button.disabled, false)
   })
 }
+
+test('preload forwards game requests only on fixed game channels', async () => {
+  let api
+  const calls = []
+  vm.runInNewContext(source('electron/preload.js'), {
+    require: () => ({ contextBridge: { exposeInMainWorld: (_, value) => { api = value } },
+      ipcRenderer: { invoke: (...args) => { calls.push(args) } } })
+  })
+  const request = { matchId: 'ab'.repeat(32), revision: 0, requestId: 1, position: 0 }
+  await api.gameState('ignored')
+  await api.requestMove(request, 'ignored')
+  assert.deepEqual(calls, [['peerarcade:game-state'], ['peerarcade:game-move', request]])
+})

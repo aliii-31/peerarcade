@@ -53,6 +53,12 @@ app.whenReady().then(async () => {
     'join-room': (value) => roomClient.join(value),
     'leave-room': () => roomClient.leave(),
     'room-state': () => roomClient.state(),
+    'game-state': () => roomClient.gameState(),
+    'game-move': async value => {
+      const { validMove } = await import('../p2p/game-sync.mjs')
+      if (!validMove(value)) throw new Error('Invalid move request')
+      return roomClient.move(value)
+    },
     'copy-invitation': () => {
       const value = roomClient.invitation()
       if (!value) throw new Error('No host invitation to copy')
@@ -62,10 +68,10 @@ app.whenReady().then(async () => {
   }
   for (const [name, handler] of Object.entries(roomHandlers)) {
     ipcMain.handle(`peerarcade:${name}`, (event, ...args) => {
-      const expected = name === 'join-room' ? 1 : 0
+      const expected = ['join-room', 'game-move'].includes(name) ? 1 : 0
       if (event.sender !== window.webContents || event.senderFrame !== window.webContents.mainFrame ||
           event.senderFrame.url !== rendererURL || args.length !== expected ||
-          (expected && (typeof args[0] !== 'string' || args[0].length > 68))) {
+          (name === 'join-room' && (typeof args[0] !== 'string' || args[0].length > 68))) {
         throw new Error('Invalid room request')
       }
       return handler(...args)

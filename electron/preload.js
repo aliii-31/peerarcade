@@ -7,5 +7,7 @@ contextBridge.exposeInMainWorld('peerArcade', {
   joinRoom: invitation => ipcRenderer.invoke('peerarcade:join-room', invitation),
   leaveRoom: () => ipcRenderer.invoke('peerarcade:leave-room'),
   roomState: () => ipcRenderer.invoke('peerarcade:room-state'),
+  gameState: () => ipcRenderer.invoke('peerarcade:game-state'),
+  requestMove: request => ipcRenderer.invoke('peerarcade:game-move', request),
   copyInvitation: () => ipcRenderer.invoke('peerarcade:copy-invitation')
 })

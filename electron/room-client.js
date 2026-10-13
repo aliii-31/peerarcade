@@ -72,6 +72,8 @@ function createRoomClient(worker, timeoutMs = 8000) {
       return decorate(state)
     }),
     state: async () => decorate(await request('state')),
+    gameState: () => request('game-state'),
+    move: value => request('move', value),
     invitation: () => invitation
   }
 }
