@@ -1,3 +1,6 @@
+> Current Issue #8 results: [game synchronization verification](game-sync.md#verification-and-limitations).
+> The foundation evidence below is historical and predates rooms and synchronization.
+
 # v0.1 verification record
 
 This is historical evidence for the v0.1 foundation. For current Issue #6

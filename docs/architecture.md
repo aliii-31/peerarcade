@@ -13,11 +13,10 @@ flowchart LR
     B -->|matching pong| M
     M -->|health result| P
     P -->|resolved promise| R
-    G[Standalone Tic-Tac-Toe engine: not wired to UI]
+    B -->|accepted moves| G[Standalone Tic-Tac-Toe engine]
 ```
 
-All arrows are communication **on one computer**. The game engine is deliberately
-shown without a connection: neither the desktop UI nor the worker uses it yet.
+All arrows are communication **on one computer**. The Bare worker uses the independent game engine for room matches.
 This diagram covers local IPC only. Opt-in remote connections are described in
 [peer discovery](peer-discovery.md).
 
@@ -27,7 +26,7 @@ This diagram covers local IPC only. Opt-in remote connections are described in
 | --- | --- |
 | `renderer/index.html`, `style.css` | Heading, status text, check button, and minimal styling |
 | `renderer/app.js` | Requests health checks and updates the page |
-| `electron/preload.js` | Exposes fixed health and room operations through `contextBridge` |
+| `electron/preload.js` | Exposes fixed health, room and game operations through `contextBridge` |
 | `electron/main.js` | Creates the window, starts Bare, validates IPC callers, and handles shutdown |
 | `electron/worker-client.js` | Matches ping/pong IDs and handles timeouts and disconnections |
 | `p2p/main.mjs` | Bare entry point; answers local pings and starts discovery when configured |
@@ -59,6 +58,13 @@ validates invitations, while Bare owns discovery, role handshakes, admission, an
 cleanup. The renderer only displays status and invokes allowed operations. See
 [rooms](rooms.md) for the protocol, files, bearer-secret boundary, and live tests.
 Room mode and environment-configured developer discovery are mutually exclusive.
+
+## Game synchronization
+
+`p2p/game-sync.mjs` handles host authority, request IDs and revisions. `p2p/rooms.mjs`
+creates one match after admission and destroys it on departure. Main and preload
+expose only validated `requestMove` and `gameState` operations. See the
+[protocol guide](game-sync.md) for messages, runtime compatibility and limits.
 
 ## A health check, step by step
 
@@ -92,7 +98,7 @@ one application on one machine. It requires no room, remote identity, or peer.
 A successful pong confirms local worker responsiveness only.
 
 Hyperswarm discovery and minimal rooms are implemented in Issues #6–#7. Future
-v0.2 work will introduce synchronized state and the full multiplayer game interface. Those capabilities are listed separately in
+v0.2 work will introduce the full multiplayer game interface; [state synchronization](game-sync.md) is implemented. Those capabilities are listed separately in
 the [roadmap](../README.md#next-milestone-v02--p2p-multiplayer). They are not
 implemented by installing Hyperswarm or by placing a worker under `p2p/`.
 
@@ -107,7 +113,7 @@ implemented by installing Hyperswarm or by placing a worker under `p2p/`.
 | Numbered, newline-delimited ping/pong | No messaging dependency; intentionally limited to health checks rather than general game messages |
 | Poll every five seconds; timeout after three | Simple health reporting, but failure display is not instantaneous; failed workers require an app restart |
 | Plain HTML/CSS/JavaScript and Node's test runner | Few dependencies and no bundler; no hot reload or packaged distribution workflow |
-| Independent, immutable Tic-Tac-Toe snapshots | Rules can be tested without the desktop; UI and network integration remain separate future work |
+| Independent, immutable Tic-Tac-Toe snapshots | Rules can be tested without the desktop; UI remains separate; Bare imports the same rules engine |
 
 Pear Runtime brings storage-related transitive packages, but this application
 does not instantiate its storage/updater APIs. Application persistence and

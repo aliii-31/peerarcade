@@ -54,7 +54,7 @@ Over that stream:
    role-specific proof and host role.
 4. The guest verifies the host proof and acknowledges the guest role.
 5. The host sends a final ready message. Both report connected with complementary
-   roles; they do not exchange game moves.
+   roles. The completed handshake now starts a fresh [synchronized match](game-sync.md).
 
 Proofs use libsodium `crypto_auth`/`crypto_auth_verify` through Holepunch's
 `sodium-universal`. They include the challenge, the role, and both Noise public
@@ -149,4 +149,8 @@ Windows/Linux, and prolonged offline/reconnect behavior remain unverified.
 Remote churn can temporarily occupy the handshake slot; there is no rate-limit
 or abuse-protection service. Shutdown has bounded fallbacks, and a failed worker
 requires app restart. Rooms are ephemeral, with no persistence, migration,
-spectators, game synchronization, public matchmaking, or full game interface.
+spectators, public matchmaking, or full game interface. Game synchronization is
+now implemented separately in [Issue #8](game-sync.md).
+
+The 49-test evidence above records Issue #7. Current synchronization verification
+and the extended live harness are documented in [game synchronization](game-sync.md).
