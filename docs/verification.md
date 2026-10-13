@@ -1,4 +1,4 @@
-> Release readiness: [v0.2 QA report](qa-v0.2.md) — NO-GO until manual desktop sign-off.
+> Release readiness: [v0.2 QA report](qa-v0.2.md) — GO following maintainer manual desktop sign-off; see the report for evidence limits.
 
 > Current UI verification: [Issue #9 desktop interface](game-interface.md#issue-9-verification).
 
