@@ -1,15 +1,16 @@
 # PeerArcade
 
 PeerArcade is a desktop mini-arcade being built toward peer-to-peer multiplayer
-with Holepunch technology. The current **v0.1 game foundation** contains:
+with Holepunch technology. The current development branch builds on the **v0.1 game foundation** with:
 
 - An Electron window with a local Bare-worker health check.
 - A restricted renderer → preload → main → worker communication path.
 - A standalone, tested Tic-Tac-Toe rules engine, not connected to the window.
+- Opt-in Hyperswarm peer discovery and encrypted connections configured by a developer topic.
 
-**There is no playable game UI or multiplayer yet.** Peer discovery, rooms,
-game-state synchronization, authentication, application persistence, and Connect
-Four are not implemented.
+**There is no playable game UI or multiplayer gameplay yet.** Rooms, game-state
+synchronization, authentication, application persistence, and Connect Four are
+not implemented. Discovery is disabled unless a topic is configured.
 
 ## Prerequisites
 
@@ -46,7 +47,7 @@ Electron may download its binary on first launch.
 The window displays **PeerArcade** and a **Check worker** button. Click it to
 request a local ping/pong. Success reads:
 
-> Local worker ready — pong received. Networking disabled.
+> Local worker ready — pong received.
 
 Checks also run at startup and every five seconds. Close the window to quit.
 Restart after code changes; there is no automatic reload or build step. If the
@@ -68,15 +69,17 @@ isolated bridge/renderer behavior. It is not an automated desktop UI test.
 
 ## Documentation
 
+- [Run two instances and verify peer discovery](docs/peer-discovery.md)
 - [Architecture and design decisions](docs/architecture.md)
 - [Tic-Tac-Toe state model and API](games/README.md)
 - [Verification evidence and limitations](docs/verification.md)
 
 ## Next milestone: v0.2 — P2P Multiplayer
 
-The following work is **planned, not implemented**:
+Developer peer discovery from Issue #6 is implemented; the remaining multiplayer
+features are **planned, not implemented**:
 
-1. [Peer discovery with Hyperswarm (#6)](https://github.com/aliii-31/peerarcade/issues/6)
+1. Implemented: [Peer discovery with Hyperswarm (#6)](https://github.com/aliii-31/peerarcade/issues/6)
 2. [Create and join rooms (#7)](https://github.com/aliii-31/peerarcade/issues/7)
 3. [Synchronize game state (#8)](https://github.com/aliii-31/peerarcade/issues/8)
 4. [Build a multiplayer game interface (#9)](https://github.com/aliii-31/peerarcade/issues/9)

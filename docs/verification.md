@@ -1,4 +1,7 @@
-# Verification record
+# v0.1 verification record
+
+This is historical evidence for the v0.1 foundation. For current Issue #6
+networking results and limitations, see [peer discovery](peer-discovery.md).
 
 [Project setup](../README.md) · [Architecture](architecture.md)
 

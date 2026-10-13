@@ -18,7 +18,8 @@ flowchart LR
 
 All arrows are communication **on one computer**. The game engine is deliberately
 shown without a connection: neither the desktop UI nor the worker uses it yet.
-There are no remote peers in this diagram.
+This diagram covers local IPC only. Opt-in remote connections are described in
+[peer discovery](peer-discovery.md).
 
 ## Layers and files
 
@@ -29,7 +30,8 @@ There are no remote peers in this diagram.
 | `electron/preload.js` | Exposes only `window.peerArcade.checkWorker()` through `contextBridge` |
 | `electron/main.js` | Creates the window, starts Bare, validates IPC callers, and handles shutdown |
 | `electron/worker-client.js` | Matches ping/pong IDs and handles timeouts and disconnections |
-| `p2p/main.mjs` | Bare entry point; answers local pings and loads Hyperswarm without starting it |
+| `p2p/main.mjs` | Bare entry point; answers local pings and starts discovery when configured |
+| `p2p/discovery.mjs` | Hyperswarm lifecycle, connection counts, errors, and cleanup |
 | `games/tictactoe.js` | Independent rules, move validation, turn order, wins, and draws |
 | `test/` | Node tests for the game rules and local communication components |
 | `package.json`, `package-lock.json` | Scripts, runtime requirements, and dependency versions |
@@ -44,9 +46,8 @@ There are no remote peers in this diagram.
 - **Bare** executes the worker separately from Electron. `Bare.IPC` is the other
   end of the local stream. The runtime is supplied by the transitive
   `bare-sidecar` dependency, not a separately installed global tool.
-- **Hyperswarm** is installed for future peer discovery and encrypted P2P
-  connections. Today the worker only imports it and checks that it loaded;
-  no swarm is constructed and no topic is joined.
+- **Hyperswarm** discovers peers and supplies encrypted connections when
+  `PEERARCADE_TOPIC` is configured. Without a topic, no swarm is constructed.
 
 The game engine uses CommonJS and has no Electron, Bare, or networking imports.
 Its public API remains documented in [games/README.md](../games/README.md).
@@ -73,7 +74,8 @@ satisfying a later check; the timeout is three seconds. An end, close, or error
 rejects pending and future checks. There is no automatic worker restart.
 
 The renderer checks on startup, on click, and every five seconds. Closing the
-window quits the app; main removes the IPC handler and closes the worker client.
+window asks Bare to destroy its swarm before main closes the worker client and
+quits. Shutdown is bounded by timeouts to avoid hanging on network cleanup.
 
 ## Local IPC versus future P2P
 
@@ -81,8 +83,8 @@ IPC means inter-process communication. Here it connects processes belonging to
 one application on one machine. It requires no room, remote identity, or peer.
 A successful pong confirms local worker responsiveness only.
 
-Future v0.2 work will introduce actual Hyperswarm discovery, rooms, synchronized
-state, and a multiplayer interface. Those capabilities are listed separately in
+Opt-in Hyperswarm discovery is now implemented in Issue #6. Future v0.2 work
+will introduce rooms, synchronized state, and a multiplayer interface. Those capabilities are listed separately in
 the [roadmap](../README.md#next-milestone-v02--p2p-multiplayer). They are not
 implemented by installing Hyperswarm or by placing a worker under `p2p/`.
 
@@ -106,7 +108,7 @@ that is not a saved-game feature.
 
 The design follows the
 [official Holepunch Electron/Bare tutorial](https://docs.pears.com/p2p/getting-started/build-a-peer-to-peer-chat/build-a-peer-to-peer-chat/),
-without its chat, discovery, or styling framework. The lockfile currently resolves
+without its chat or styling framework; discovery is opt-in as documented separately. The lockfile currently resolves
 Electron 44.7.0, Pear Runtime 1.3.1, and Hyperswarm 4.17.2. Electron was updated
 from the tutorial's version during Issue #2 after npm audit findings; see the
 [official 44.7.0 release](https://github.com/electron/electron/releases/tag/v44.7.0).
