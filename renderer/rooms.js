@@ -13,6 +13,7 @@ let snapshot = { status: 'idle', role: null, invitation: null }
 
 function renderRoom(state) {
   snapshot = state
+  window.peerArcadeGame?.updateRoom(state)
   roomStatus.textContent = `${state.role || 'No role'} — ${state.status}: ${state.message}`
   invitationInput.value = state.invitation || ''
   const inRoom = state.status !== 'idle'
@@ -20,15 +21,22 @@ function renderRoom(state) {
   leaveButton.disabled = roomBusy || !inRoom
   copyButton.disabled = roomBusy || !state.invitation
 }
+function friendlyRoomError(error) {
+  if (/Invalid invitation/i.test(error.message)) return 'Invalid invitation. Copy the complete invitation from your host and try again.'
+  if (/developer discovery/i.test(error.message)) return 'Rooms are unavailable in developer discovery mode. Restart without PEERARCADE_TOPIC to play.'
+  if (/full/i.test(error.message)) return 'This room already has two players. Ask the host for another room.'
+  return 'Unable to complete that action. Check your connection, leave the room, and try again.'
+}
 async function roomAction(action) {
   if (roomBusy) return
   revision++
+  window.peerArcadeGame?.reset()
   roomBusy = true
   renderRoom(snapshot)
   roomError.textContent = ''
   try { snapshot = await action() }
-  catch (error) { roomError.textContent = error.message }
-  finally { roomBusy = false; renderRoom(snapshot) }
+  catch (error) { roomError.textContent = friendlyRoomError(error) }
+  finally { roomBusy = false; renderRoom(snapshot); await window.peerArcadeGame?.refresh() }
 }
 createButton.addEventListener('click', () => roomAction(() => window.peerArcade.createRoom()))
 document.getElementById('join-form').addEventListener('submit', (event) => {
@@ -42,8 +50,9 @@ document.getElementById('join-form').addEventListener('submit', (event) => {
 })
 leaveButton.addEventListener('click', () => roomAction(() => window.peerArcade.leaveRoom()))
 copyButton.addEventListener('click', async () => {
-  try { await window.peerArcade.copyInvitation(); roomError.textContent = 'Invitation copied. Share only with your guest.' }
-  catch (error) { roomError.textContent = error.message }
+  const requestedAt = revision
+  try { await window.peerArcade.copyInvitation(); if (requestedAt !== revision) return; roomError.textContent = 'Invitation copied. Share only with your guest.' }
+  catch (error) { if (requestedAt === revision) roomError.textContent = friendlyRoomError(error) }
 })
 async function pollRoom() {
   if (roomBusy || polling) return
@@ -51,10 +60,18 @@ async function pollRoom() {
   polling = true
   try {
     const state = await window.peerArcade.roomState()
-    if (!roomBusy && requestedAt === revision) renderRoom(state)
-  } catch (error) { roomError.textContent = error.message }
+    if (!roomBusy && requestedAt === revision) {
+      renderRoom(state)
+      await window.peerArcadeGame?.refresh()
+    }
+  } catch (error) {
+    if (!roomBusy && requestedAt === revision) {
+      roomError.textContent = friendlyRoomError(error)
+      window.peerArcadeGame?.unavailable()
+    }
+  }
   finally { polling = false }
 }
 pollRoom()
-const roomTimer = setInterval(pollRoom, 1000)
+const roomTimer = setInterval(pollRoom, 500)
 window.addEventListener('beforeunload', () => clearInterval(roomTimer))

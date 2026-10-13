@@ -59,6 +59,13 @@ cleanup. The renderer only displays status and invokes allowed operations. See
 [rooms](rooms.md) for the protocol, files, bearer-secret boundary, and live tests.
 Room mode and environment-configured developer discovery are mutually exclusive.
 
+## Desktop game interface
+
+`renderer/game.js` renders accepted snapshots, enforces disabled cell states,
+and guards pending moves and stale responses. `renderer/rooms.js` coordinates
+room controls and the non-overlapping 500ms refresh. No game rules run in the UI.
+See [manual verification](game-interface.md).
+
 ## Game synchronization
 
 `p2p/game-sync.mjs` handles host authority, request IDs and revisions. `p2p/rooms.mjs`
@@ -98,7 +105,7 @@ one application on one machine. It requires no room, remote identity, or peer.
 A successful pong confirms local worker responsiveness only.
 
 Hyperswarm discovery and minimal rooms are implemented in Issues #6–#7. Future
-v0.2 work will introduce the full multiplayer game interface; [state synchronization](game-sync.md) is implemented. Those capabilities are listed separately in
+The [multiplayer interface](game-interface.md) now uses fixed preload calls; [state synchronization](game-sync.md) is implemented. Those capabilities are listed separately in
 the [roadmap](../README.md#next-milestone-v02--p2p-multiplayer). They are not
 implemented by installing Hyperswarm or by placing a worker under `p2p/`.
 
@@ -113,7 +120,7 @@ implemented by installing Hyperswarm or by placing a worker under `p2p/`.
 | Numbered, newline-delimited ping/pong | No messaging dependency; intentionally limited to health checks rather than general game messages |
 | Poll every five seconds; timeout after three | Simple health reporting, but failure display is not instantaneous; failed workers require an app restart |
 | Plain HTML/CSS/JavaScript and Node's test runner | Few dependencies and no bundler; no hot reload or packaged distribution workflow |
-| Independent, immutable Tic-Tac-Toe snapshots | Rules can be tested without the desktop; UI remains separate; Bare imports the same rules engine |
+| Independent, immutable Tic-Tac-Toe snapshots | Rules can be tested without the desktop; UI renders accepted snapshots; Bare imports the same rules engine |
 
 Pear Runtime brings storage-related transitive packages, but this application
 does not instantiate its storage/updater APIs. Application persistence and
