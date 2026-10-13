@@ -74,6 +74,9 @@ isolated bridge/renderer behavior. It is not an automated desktop UI test.
 
 ## Documentation
 
+- [v0.2 release QA and manual sign-off](docs/qa-v0.2.md)
+- [Draft v0.2.0 release notes](docs/releases/v0.2.0.md)
+
 - [Play and manually verify the desktop game](docs/game-interface.md)
 - [Game-state synchronization and protocol](docs/game-sync.md)
 - [Create and join two-player rooms](docs/rooms.md)
