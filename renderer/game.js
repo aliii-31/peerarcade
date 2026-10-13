@@ -25,7 +25,8 @@
       cell.setAttribute('aria-label', `Row ${Math.floor(i / 3) + 1}, column ${i % 3 + 1}: ${value || 'empty'}`)
       cell.dataset.symbol = value
     })
-    status.textContent = departed ? 'Opponent disconnected' : room.status === 'joining' ? 'Connecting…' :
+    status.textContent = room.status === 'disconnected' ? 'Connection lost' :
+      room.status === 'reconnecting' ? 'Reconnecting…' : room.status === 'failed' ? 'Unable to reconnect' : departed ? 'Opponent disconnected' : room.status === 'joining' ? 'Connecting…' :
       room.status === 'waiting' ? 'Waiting for opponent' : room.status !== 'connected' ? 'Create or join a room' :
       pending ? 'Move pending…' : recovering ? 'Checking the latest board…' : !game ? 'Loading game…' :
       game.status === 'draw' ? 'Draw' : game.status === 'won' ? (game.winner === symbol() ? 'You won' : 'You lost') :

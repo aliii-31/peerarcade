@@ -13,6 +13,7 @@ export function createGameSync({ role, matchId, send, timeoutMs = 5000 }) {
   let game = engine.createGame()
   let moves = []
   let closed = false
+  let suspended = false
   let pending = null
   const last = { X: 0, O: 0 }
   const cached = { X: null, O: null }
@@ -47,7 +48,7 @@ export function createGameSync({ role, matchId, send, timeoutMs = 5000 }) {
     return result
   }
   function requestMove(request) {
-    if (closed) return Promise.reject(new Error('Match disconnected'))
+    if (closed || suspended) return Promise.reject(new Error('Match disconnected'))
     if (!validMove(request)) return Promise.reject(new Error('Invalid move request'))
     if (request.matchId !== matchId) return Promise.reject(new Error('Stale match'))
     if (role === 'host') {
@@ -65,7 +66,7 @@ export function createGameSync({ role, matchId, send, timeoutMs = 5000 }) {
     })
   }
   function receive(message) {
-    if (closed) return
+    if (closed || suspended) return
     if (role === 'host') {
       if (message.type !== 'game-move') throw new Error('Unexpected game message')
       // Old-session packets never receive a response in the new match.
@@ -92,6 +93,9 @@ export function createGameSync({ role, matchId, send, timeoutMs = 5000 }) {
   }
   return {
     getState: () => closed ? null : snapshot(), requestMove, receive,
+    exportState: () => envelope(),
+    suspend() { suspended = true; settle('Match disconnected; state will be reconciled on recovery') },
+    resume(transport) { if (closed) throw new Error('Match closed'); send = transport; suspended = false },
     announce: () => send(envelope()),
     close() { closed = true; settle('Match disconnected') }
   }
