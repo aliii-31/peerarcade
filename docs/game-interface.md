@@ -51,7 +51,8 @@ a newer accepted board. Departure clears the board and pending state.
 A rejected or timed-out move locks the board while retrieving the current
 accepted state. If retrieval fails, the board stays locked until a later refresh
 succeeds. A timeout does not establish whether a move was accepted. There is no
-automatic move retry, reconnection, or host migration.
+automatic move retry or host migration. [Issue #19 recovery](reconnection.md) now
+restores temporary transport interruptions without changing the match.
 
 The HTML adds labelled native cell buttons and live status text. CSS provides a
 responsive two-panel layout, visible keyboard focus, and restrained X/O colors.

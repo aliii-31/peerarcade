@@ -7,6 +7,7 @@ with Holepunch technology. The current development branch builds on the **v0.1 g
 - A restricted renderer → preload → main → worker communication path.
 - A standalone, tested Tic-Tac-Toe rules engine used by synchronized room matches.
 - Hyperswarm discovery and encrypted connections.
+- Temporary transport recovery while both original workers remain alive.
 - Minimal two-player room controls: create/copy an invitation, join, leave, and view host/guest status.
 
 **Tic-Tac-Toe is playable through the desktop board** after two players join a room.
@@ -74,6 +75,7 @@ isolated bridge/renderer behavior. It is not an automated desktop UI test.
 
 ## Documentation
 
+- [Temporary connection recovery](docs/reconnection.md)
 - [v0.2 release QA and manual sign-off](docs/qa-v0.2.md)
 - [Draft v0.2.0 release notes](docs/releases/v0.2.0.md)
 

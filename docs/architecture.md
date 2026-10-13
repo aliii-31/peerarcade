@@ -69,7 +69,8 @@ See [manual verification](game-interface.md).
 ## Game synchronization
 
 `p2p/game-sync.mjs` handles host authority, request IDs and revisions. `p2p/rooms.mjs`
-creates one match after admission and destroys it on departure. Main and preload
+creates one match after admission. Intentional Leave discards it; temporary
+transport loss uses [bounded session recovery](reconnection.md). Main and preload
 expose only validated `requestMove` and `gameState` operations. See the
 [protocol guide](game-sync.md) for messages, runtime compatibility and limits.
 
