@@ -1,6 +1,11 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
-// No arbitrary channels, payloads, Electron events, or Node APIs cross this bridge.
+// Fixed operations only; joining accepts one invitation, never arbitrary IPC channels.
 contextBridge.exposeInMainWorld('peerArcade', {
-  checkWorker: () => ipcRenderer.invoke('peerarcade:check-worker')
+  checkWorker: () => ipcRenderer.invoke('peerarcade:check-worker'),
+  createRoom: () => ipcRenderer.invoke('peerarcade:create-room'),
+  joinRoom: invitation => ipcRenderer.invoke('peerarcade:join-room', invitation),
+  leaveRoom: () => ipcRenderer.invoke('peerarcade:leave-room'),
+  roomState: () => ipcRenderer.invoke('peerarcade:room-state'),
+  copyInvitation: () => ipcRenderer.invoke('peerarcade:copy-invitation')
 })

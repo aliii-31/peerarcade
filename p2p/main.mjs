@@ -1,5 +1,6 @@
 import Hyperswarm from 'hyperswarm'
 import { startDiscovery } from './discovery.mjs'
+import { createRooms } from './rooms.mjs'
 
 if (typeof Hyperswarm !== 'function') throw new Error('Hyperswarm failed to load')
 
@@ -9,12 +10,38 @@ const networking = topic ? startDiscovery({
   createSwarm: () => new Hyperswarm({ maxPeers: 8 }),
   log: (event) => console.log('[P2P]', JSON.stringify(event))
 }) : null
+const rooms = createRooms({
+  createSwarm: () => new Hyperswarm({ maxPeers: 8 }),
+  log: (event) => console.log('[Room]', JSON.stringify(event))
+})
+let commands = Promise.resolve()
+function roomCommand(line) {
+  let request
+  try { request = JSON.parse(line) } catch { return }
+  if (!Number.isSafeInteger(request?.id) || request.id < 1) return
+  commands = commands.then(async () => {
+    try {
+      if (stopping) throw new Error('Worker stopping')
+      if (topic) throw new Error('Room actions are disabled in developer discovery mode. Restart without PEERARCADE_TOPIC.')
+      let result
+      if (request.op === 'start') result = await rooms.start(request.config || {})
+      else if (request.op === 'leave') result = await rooms.leave()
+      else if (request.op === 'state') result = rooms.getState()
+      else throw new Error('Unknown room operation')
+      Bare.IPC.write(JSON.stringify({ id: request.id, result }) + '\n')
+    } catch (error) {
+      Bare.IPC.write(JSON.stringify({ id: request.id, error: error.message }) + '\n')
+    }
+  })
+}
 let stopping = false
 async function shutdown() {
   if (stopping) return
   stopping = true
   const deadline = setTimeout(() => Bare.exit(1), 5000)
   try {
+    await commands
+    await rooms.leave()
     await networking?.stop()
     Bare.IPC.write('shutdown-complete\n')
     clearTimeout(deadline)
@@ -33,11 +60,12 @@ Bare.IPC.on('data', (chunk) => {
   while ((end = input.indexOf('\n')) !== -1) {
     const line = input.slice(0, end)
     input = input.slice(end + 1)
+    if (line.startsWith('{')) { roomCommand(line); continue }
     if (line === 'shutdown') { shutdown(); continue }
     if (/^ping:[1-9][0-9]{0,15}$/.test(line)) {
       Bare.IPC.write(`pong:${line.slice(5)}\n`)
     }
   }
-  if (input.length > 64) Bare.exit(1)
+  if (input.length > 2048) Bare.exit(1)
 })
 Bare.IPC.write(`PeerArcade worker ready (networking ${topic ? 'configured' : 'disabled'})\n`)

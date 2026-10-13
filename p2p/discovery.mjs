@@ -1,6 +1,7 @@
 // Runtime-independent lifecycle wrapper; the Bare entry point supplies Hyperswarm.
-export function startDiscovery({ topic, createSwarm, log }) {
+export function startDiscovery({ topic, createSwarm, log, onConnection, modes = { client: true, server: true } }) {
   let swarm
+  let discovery
   let stopping
   const peers = new Set()
   const report = (event, details = {}) => log({ event, ...details })
@@ -21,11 +22,12 @@ export function startDiscovery({ topic, createSwarm, log }) {
         peers.delete(socket)
         report('disconnected', { peer, count: peers.size })
       })
-      // No application protocol yet; drain unsolicited data without retaining it.
-      socket.resume()
+      // Rooms own their handshake; developer discovery only drains unsolicited data.
+      if (onConnection) onConnection(socket)
+      else socket.resume()
     })
     report('discovering', { topic })
-    const discovery = swarm.join(key, { client: true, server: true })
+    discovery = swarm.join(key, modes)
     Promise.resolve(discovery.flushed()).then(() => {
       if (!stopping) report('announced', { topic })
     }).catch((err) => error('announce', err))
@@ -33,6 +35,7 @@ export function startDiscovery({ topic, createSwarm, log }) {
     error('startup', err)
   }
   return {
+    refresh() { return discovery?.refresh() },
     stop() {
       if (!stopping) {
         stopping = Promise.resolve().then(async () => {
