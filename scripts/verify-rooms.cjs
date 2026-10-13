@@ -35,7 +35,15 @@ async function peer(name) {
     child.once('exit', code => { clearTimeout(timer); code === 0 ? resolve() : reject(new Error(`${name} exit ${code}`)) })
     child.send({ op: 'quit' })
   })
-  return { call, quit }
+  const crash = () => new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`${name} did not terminate`)), 5000)
+    child.once('exit', (_code, signal) => {
+      clearTimeout(timer)
+      signal === 'SIGKILL' ? resolve() : reject(new Error(`${name} unexpected termination result`))
+    })
+    child.kill('SIGKILL')
+  })
+  return { call, quit, crash }
 }
 async function waitState(peer, status) {
   const until = Date.now() + 60000
@@ -119,7 +127,20 @@ async function run() {
   await host.call('leave')
   await waitState(guest, 'departed')
   await guest.call('leave')
-  await Promise.all([host.quit(), guest.quit()])
+  // Reconnect, then terminate the guest Electron process without Leave/Quit.
+  await guest.quit()
+  const crashGuest = await peer('crash-guest')
+  const nextRoom = await host.call('create')
+  await crashGuest.call('join', nextRoom.invitation)
+  await Promise.all([waitState(host, 'connected'), waitState(crashGuest, 'connected')])
+  await crashGuest.crash()
+  await waitState(host, 'waiting')
+  assert.equal(await host.call('gameState'), null)
+  assert.equal((await host.call('health')).reply, 'pong')
+  await assert.rejects(host.call('move', { matchId: oldMatch.matchId, revision: 0, requestId: ++moveId, position: 0 }), /No connected/)
+  await host.call('leave')
+  await host.quit()
+  console.log('PASS: unexpected guest SIGKILL clears host match, disables moves, preserves host health and clean host shutdown')
   console.log('PASS: guest departure, rejoin, host departure, and clean exits')
 }
 run().catch(error => { console.error(error.message); process.exitCode = 1 }).finally(() => {

@@ -5,8 +5,10 @@ const PearRuntime = require('pear-runtime')
 const { createRoomClient } = require('../electron/room-client')
 const { createWorkerClient } = require('../electron/worker-client')
 let worker
+let workerExitCode = null
 app.whenReady().then(() => {
   worker = PearRuntime.run(path.join(__dirname, '..', 'p2p', 'main.mjs'))
+  worker.on('exit', code => { workerExitCode = code; console.log('[QA] Bare exit code:', code) })
   const rooms = createRoomClient(worker)
   const health = createWorkerClient(worker)
   worker.stdout.on('data', chunk => process.stdout.write(chunk))
@@ -15,7 +17,7 @@ app.whenReady().then(() => {
     try {
       if (op === 'quit') {
         const timeout = setTimeout(() => { worker.destroy(); app.exit(1) }, 6000)
-        worker.once('close', () => { clearTimeout(timeout); app.exit(0) })
+        worker.once('close', () => { clearTimeout(timeout); app.exit(workerExitCode === 0 ? 0 : 1) })
         worker.write('shutdown\n')
         return
       }
