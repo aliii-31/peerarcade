@@ -1,4 +1,4 @@
-> Current release readiness: [v0.3 QA report](qa-v0.3.md) — NO-GO pending maintainer desktop recovery verification.
+> Current release readiness: [v0.3 QA report](qa-v0.3.md) — GO with maintainer acceptance of the remaining desktop recovery verification gap; GUI recovery remains unverified.
 > Historical v0.2 sign-off: [v0.2 QA report](qa-v0.2.md); it does not verify recovery.
 
 > Current UI verification: [Issue #9 desktop interface](game-interface.md#issue-9-verification).

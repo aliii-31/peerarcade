@@ -2,16 +2,19 @@
 
 ## Recommendation
 
-**NO-GO for release pending maintainer desktop recovery verification.** Automated
-regression and controlled real-network tests pass. No production defect was
-established. Visible reconnection gameplay is **BLOCKED / NOT VERIFIED** because
-computer use returned `Computer Use permissions are not granted`. The maintainer
-plans to test personally; that is not yet a test result or acceptance of this gap.
-The previous v0.2 manual sign-off does not cover v0.3 recovery.
+**GO for release preparation, with maintainer acceptance of the desktop verification gap.**
+Automated regression and controlled real-network tests pass. No production defect
+was established. Visible reconnection gameplay remains **BLOCKED / NOT VERIFIED**
+because computer use returned `Computer Use permissions are not granted`.
 
-This completes the QA/reporting deliverable, not release approval. No tag or release
-is created. A maintainer can record the desktop results or explicitly accept the
-remaining verification gap before changing this recommendation.
+After reviewing the QA outcome, the maintainer instructed: “okay lets fix the
+release recommendation to remove no go”. This is recorded as acceptance of the
+remaining desktop verification gap, not confirmation that specific GUI scenarios
+passed. The earlier plan to test personally and the v0.2 manual sign-off are not
+new v0.3 test evidence. The evidence matrix and manual checklist remain unchanged.
+
+The recommendation is now **GO** on that basis. No merge, tag or release is
+authorized or performed by this documentation update.
 
 ## Environment and revision
 
@@ -170,15 +173,15 @@ npm start -- --user-data-dir="$(mktemp -d)"
    rejection while the original slot is reserved. Never paste invitations into
    public evidence. Record actual scenarios, platform and observed results.
 
-These steps are pending maintainer testing, not asserted results. Record that
-result in this report before recommending release, or explicitly document a
-maintainer decision to accept the gap. Cross-device execution of this checklist
+These steps remain pending maintainer testing, not asserted results. The maintainer
+has accepted this verification gap for the GO recommendation above. Record actual
+results here when testing is completed. Cross-device execution of this checklist
 would add coverage only after it actually occurs.
 
 ## Remaining risks
 
-The sole current release gate is desktop recovery verification/explicit acceptance.
-No critical application defect was established by the completed tests. Coverage is
+The maintainer has accepted the remaining desktop verification gap; it is no longer
+a release gate. No critical application defect was established by the completed tests. Coverage is
 limited to one Mac, bounded runs and controlled faults. Recovery requires the
 original host and guest workers, protocol v2 on both peers, and the retained
 in-memory session credential. v0.2.0 protocol v1 is incompatible. There is no

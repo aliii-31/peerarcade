@@ -95,8 +95,8 @@ in memory and validates a returning guest's session credential before restoring
 accepted state. Both original workers must remain alive and use protocol v2.
 
 The [QA report](docs/qa-v0.3.md) separates automated checks, real Hyperswarm tests,
-and desktop evidence. **Release recommendation: NO-GO pending maintainer desktop
-recovery verification.** The earlier v0.2 sign-off does not cover reconnection.
+and desktop evidence. **Release recommendation: GO with maintainer acceptance of the remaining desktop
+recovery verification gap.** The earlier v0.2 sign-off does not cover reconnection.
 No v0.3 release is published by this preparation work.
 
 Additional repeatable checks:
