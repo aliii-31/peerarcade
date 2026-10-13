@@ -15,7 +15,7 @@ app.whenReady().then(() => {
   worker.stderr.on('data', chunk => process.stderr.write(chunk))
   process.on('message', async ({ id, op, value }) => {
     try {
-      if (op === 'interrupt') {
+      if (['interrupt', 'block', 'unblock', 'stats', 'drop-move', 'drop-state'].includes(op)) {
         const result = await new Promise((resolve, reject) => {
           let input = ''
           const timer = setTimeout(() => { worker.removeListener('data', onData); reject(new Error('Interrupt timed out')) }, 3000)
@@ -24,12 +24,12 @@ app.whenReady().then(() => {
             let end
             while ((end = input.indexOf('\n')) !== -1) {
               const line = input.slice(0, end); input = input.slice(end + 1)
-              if (!line.startsWith('qa-interrupted:')) continue
-              clearTimeout(timer); worker.removeListener('data', onData); resolve(Number(line.split(':')[1])); return
+              if (!line.startsWith('qa-result:')) continue
+              clearTimeout(timer); worker.removeListener('data', onData); resolve(JSON.parse(line.slice('qa-result:'.length))); return
             }
           }
           worker.on('data', onData)
-          worker.write('qa-interrupt\n')
+          worker.write(`qa-${op}\n`)
         })
         process.send({ id, result }); return
       }
@@ -43,6 +43,6 @@ app.whenReady().then(() => {
       process.send({ id, result }) // Invitations stay on the test control IPC, never stdout.
     } catch (error) { process.send({ id, error: error.message }) }
   })
-  process.send({ ready: true })
+  process.send({ ready: true, workerPid: worker._process.pid }) // Test-only pinned Sidecar diagnostic.
 })
 process.on('disconnect', () => { worker?.destroy(); app.exit(1) })
