@@ -115,3 +115,17 @@ test('waiting and connecting status disable all moves', () => {
   u.ui.updateRoom({status:'joining',role:'guest'});assert.match(u.el('game-status').textContent,/Connecting/)
   for(let i=0;i<9;i++) assert.equal(u.el(`cell-${i}`).disabled,true)
 })
+
+test('recovery locks board, restores accepted state and retains request IDs', async () => {
+  const u=setup();await u.connect();await u.click(0)
+  u.ui.updateRoom({status:'disconnected',role:'host'})
+  assert.equal(u.el('game-status').textContent,'Connection lost')
+  assert.equal(u.el('cell-0').disabled,true)
+  u.ui.updateRoom({status:'reconnecting',role:'host'})
+  assert.match(u.el('game-status').textContent,/Reconnecting/)
+  await u.connect();await u.click(1)
+  assert.equal(u.calls[1].requestId,2)
+  u.ui.updateRoom({status:'failed',role:'host'})
+  assert.equal(u.el('game-status').textContent,'Unable to reconnect')
+  assert.equal(u.el('cell-1').disabled,true)
+})

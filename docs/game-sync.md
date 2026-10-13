@@ -65,7 +65,7 @@ network send operation. Room state and health checks remain separate.
 
 ## Wire messages and conflict handling
 
-Room handshake version 1 now requires `matchId` in the host's final `ready` message.
+Historical v0.2.0 room handshake version 1 required `matchId` in the host's final `ready` message.
 Both instances must run this implementation; mixed pre-Issue-#8 clients are not
 supported. Game frames are routed only after invitation proof and role handshake
 completion, over the existing encrypted Hyperswarm socket.
@@ -101,6 +101,10 @@ small and contains no invitation/proof logging. Invalid JSON, oversized frames,
 and invalid state histories close the offending connection without crashing.
 
 ## Departure and match lifecycle
+
+**Issue #19 update:** unexpected transport loss now suspends and restores the same
+match within a bounded window. See [reconnection](reconnection.md). The behavior
+below applies to intentional Leave; it describes the original v0.2.0 baseline.
 
 Every newly admitted connection creates a fresh empty match with a new ID.
 Departure destroys both peers' match objects, rejects pending moves, and returns

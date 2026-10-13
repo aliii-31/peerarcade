@@ -55,6 +55,16 @@ async function waitState(peer, status) {
   }
   throw new Error(`Timed out waiting for ${status}`)
 }
+async function waitRestored(peer) {
+  const until = Date.now() + 65000
+  while (Date.now() < until) {
+    const state = await peer.call('state')
+    if (state.status === 'connected' && state.message === 'Game restored') return
+    if (['failed', 'error'].includes(state.status)) throw new Error(state.message)
+    await delay(100)
+  }
+  throw new Error('Timed out waiting for authoritative recovery')
+}
 async function sameGame(host, guest) {
   const until = Date.now() + 5000
   while (Date.now() < until) {
@@ -67,6 +77,7 @@ async function sameGame(host, guest) {
 let moveId = 0
 async function play(host, guest, positions, status, winner) {
   let state = await sameGame(host, guest)
+  let guestRequest
   assert.equal(state.revision, 0)
   assert.deepEqual(state.board, Array(9).fill(null))
   const request = position => ({ matchId: state.matchId, revision: state.revision, requestId: ++moveId, position })
@@ -78,7 +89,20 @@ async function play(host, guest, positions, status, winner) {
     state = await sameGame(host, guest)
     assert.equal(state.revision, index + 1)
     assert.equal(state.board[position], index % 2 ? 'O' : 'X')
+    if (index === 2 && status === 'won') {
+      const before = state
+      assert.equal(await guest.call('interrupt'), 1)
+      await Promise.all([waitRestored(host), waitRestored(guest)])
+      state = await sameGame(host, guest)
+      assert.deepEqual(state, before)
+      await guest.call('move', guestRequest)
+      await assert.rejects(guest.call('move', { ...request(8), revision: 0 }), /Stale revision/)
+      assert.deepEqual(await sameGame(host, guest), before)
+      assert.equal((await guest.call('health')).reply, 'pong')
+      console.log('PASS: real socket interrupted with both Electron/Bare processes alive; same match, revision, board and turn restored')
+    }
     if (index === 1) {
+      guestRequest = proposal
       await guest.call('move', proposal)
       assert.deepEqual(await sameGame(host, guest), state)
       await assert.rejects(host.call('move', request(positions[0])), /occupied/)
@@ -134,6 +158,7 @@ async function run() {
   await crashGuest.call('join', nextRoom.invitation)
   await Promise.all([waitState(host, 'connected'), waitState(crashGuest, 'connected')])
   await crashGuest.crash()
+  // Electron death closes Bare IPC; the surviving sidecar sends explicit Leave.
   await waitState(host, 'waiting')
   assert.equal(await host.call('gameState'), null)
   assert.equal((await host.call('health')).reply, 'pong')

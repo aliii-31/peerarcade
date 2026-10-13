@@ -48,8 +48,9 @@ async function shutdown() {
   stopping = true
   const deadline = setTimeout(() => Bare.exit(1), 5000)
   try {
-    await commands
+    // Cancel in-flight moves/retries before draining the command queue.
     await rooms.leave()
+    await commands
     await networking?.stop()
     Bare.IPC.write('shutdown-complete\n')
     clearTimeout(deadline)

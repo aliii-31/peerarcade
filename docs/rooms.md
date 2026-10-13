@@ -1,3 +1,7 @@
+> Current recovery behavior: [Issue #19 reconnection](reconnection.md).
+> Intentional Leave starts a fresh match next time; unexpected transport loss
+> temporarily reserves the previous session. Both peers need protocol v2.
+
 # Two-player rooms
 
 Rooms add invitation-based host/guest pairing to the existing Bare/Hyperswarm
