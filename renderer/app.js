@@ -8,7 +8,7 @@ async function checkWorker() {
   try {
     const result = await window.peerArcade.checkWorker()
     status.textContent = result.status === 'ready' && result.reply === 'pong'
-      ? 'Local worker ready — pong received. Networking disabled.'
+      ? 'Local worker ready — pong received.'
       : 'Local worker unavailable. Try checking again.'
   } catch {
     status.textContent = 'Local worker unavailable. Try checking again.'
