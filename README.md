@@ -9,8 +9,8 @@ with Holepunch technology. The current development branch builds on the **v0.1 g
 - Hyperswarm discovery and encrypted connections.
 - Minimal two-player room controls: create/copy an invitation, join, leave, and view host/guest status.
 
-**There is no playable game board yet.** Host-authoritative Tic-Tac-Toe state
-synchronization is available through the developer API and network harness.
+**Tic-Tac-Toe is playable through the desktop board** after two players join a room.
+The board displays host-authoritative accepted state.
 Account authentication, application persistence, and Connect Four are not implemented. Networking starts when you create/join a room, or opt into
 developer discovery mode.
 
@@ -74,6 +74,7 @@ isolated bridge/renderer behavior. It is not an automated desktop UI test.
 
 ## Documentation
 
+- [Play and manually verify the desktop game](docs/game-interface.md)
 - [Game-state synchronization and protocol](docs/game-sync.md)
 - [Create and join two-player rooms](docs/rooms.md)
 - [Run two instances and verify peer discovery](docs/peer-discovery.md)
@@ -83,13 +84,13 @@ isolated bridge/renderer behavior. It is not an automated desktop UI test.
 
 ## Next milestone: v0.2 — P2P Multiplayer
 
-Peer discovery and minimal rooms and game synchronization from Issues #6–#8 are implemented; the remaining multiplayer
+Peer discovery, minimal rooms, game synchronization and the desktop board from Issues #6–#9 are implemented; the remaining multiplayer
 features are **planned, not implemented**:
 
 1. Implemented: [Peer discovery with Hyperswarm (#6)](https://github.com/aliii-31/peerarcade/issues/6)
 2. Implemented: [Create and join rooms (#7)](https://github.com/aliii-31/peerarcade/issues/7)
 3. Implemented: [Synchronize game state (#8)](https://github.com/aliii-31/peerarcade/issues/8)
-4. [Build a multiplayer game interface (#9)](https://github.com/aliii-31/peerarcade/issues/9)
+4. Implemented: [Build a multiplayer game interface (#9)](https://github.com/aliii-31/peerarcade/issues/9)
 5. [End-to-end multiplayer QA (#10)](https://github.com/aliii-31/peerarcade/issues/10)
 
 The v0.1 foundation makes that work possible; local ping/pong does not prove

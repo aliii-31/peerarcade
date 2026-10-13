@@ -1,3 +1,5 @@
+> Current UI verification: [Issue #9 desktop interface](game-interface.md#issue-9-verification).
+
 > Current Issue #8 results: [game synchronization verification](game-sync.md#verification-and-limitations).
 > The foundation evidence below is historical and predates rooms and synchronization.
 

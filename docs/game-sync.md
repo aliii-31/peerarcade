@@ -3,7 +3,7 @@
 [Setup](../README.md) · [Rooms](rooms.md) · [Rules API](../games/README.md)
 
 Issue #8 connects the existing rules engine to an admitted room connection.
-There is still no playable board UI; Issue #9 will use the API below.
+The [Issue #9 desktop board](game-interface.md) uses the API below.
 No dependencies were added and `games/tictactoe.js` is unchanged.
 
 ## Where the game runs
@@ -114,6 +114,8 @@ Developer mode (`PEERARCADE_TOPIC`) retains discovery and health behavior, but
 room/game operations are disabled there. Use normal room mode for this protocol.
 
 ## Verification and limitations
+
+This evidence predates the desktop board. See [Issue #9 verification](game-interface.md#issue-9-verification) for current UI checks.
 
 Run from the repository root with Node 22.23.3 / npm 11.9.0:
 
