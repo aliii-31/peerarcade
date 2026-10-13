@@ -1,6 +1,8 @@
 # Developer peer-discovery test
 
-This is opt-in discovery and connection establishment for Issue #6. It is not a
+This documents opt-in developer discovery from Issue #6. Normal users can now
+use the separate [room interface](rooms.md); room operations are disabled while
+`PEERARCADE_TOPIC` is set. It is not a
 room system, invitation flow, matchmaking service, or playable multiplayer game.
 
 ## Run two desktop instances
@@ -62,8 +64,8 @@ Peer identities are ephemeral; there is no persistent identity or peer allowlist
 
 Network events go to terminal logs. The UI's pong text reports only local worker
 health, not peer connectivity. The preload API, game engine, and game tests are
-unchanged. Rooms, invites, game synchronization, authentication, persistence, and
-playable UI remain future work.
+unchanged. Room creation/invitations are implemented separately. Game synchronization,
+account authentication, persistence, and playable UI remain future work.
 
 ## Actual verification
 

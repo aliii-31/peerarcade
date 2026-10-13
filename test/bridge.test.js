@@ -21,7 +21,7 @@ test('preload exposes only a fixed, payload-free health-check method', async () 
       }
     }
   })
-  assert.deepEqual(Object.keys(api), ['checkWorker'])
+  assert.deepEqual(Object.keys(api), ['checkWorker', 'createRoom', 'joinRoom', 'leaveRoom', 'roomState', 'copyInvitation'])
   assert.equal(await api.checkWorker('untrusted payload'), 'result')
   assert.deepEqual(calls, [['peerarcade:check-worker']])
 })

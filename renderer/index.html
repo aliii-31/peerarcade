@@ -12,7 +12,21 @@
       <h1>PeerArcade</h1>
       <p id="worker-status" role="status">Checking local worker…</p>
       <button id="check-worker" type="button">Check worker</button>
+      <section aria-label="Multiplayer room">
+        <h2>Room</h2>
+        <p id="room-status" role="status">Not in a room</p>
+        <button id="create-room" type="button">Create Room</button>
+        <p><label>Invitation <input id="invitation" readonly size="35"></label>
+          <button id="copy-invitation" type="button" disabled>Copy</button></p>
+        <form id="join-form">
+          <label>Join invitation <input id="join-invitation" autocomplete="off" spellcheck="false" maxlength="68" required></label>
+          <button id="join-room" type="submit">Join Room</button>
+        </form>
+        <p><button id="leave-room" type="button" disabled>Leave Room</button></p>
+        <p id="room-error" role="alert"></p>
+      </section>
     </main>
     <script src="app.js"></script>
+    <script src="rooms.js"></script>
   </body>
 </html>
