@@ -27,7 +27,7 @@ This diagram covers local IPC only. Opt-in remote connections are described in
 | --- | --- |
 | `renderer/index.html`, `style.css` | Heading, status text, check button, and minimal styling |
 | `renderer/app.js` | Requests health checks and updates the page |
-| `electron/preload.js` | Exposes only `window.peerArcade.checkWorker()` through `contextBridge` |
+| `electron/preload.js` | Exposes fixed health and room operations through `contextBridge` |
 | `electron/main.js` | Creates the window, starts Bare, validates IPC callers, and handles shutdown |
 | `electron/worker-client.js` | Matches ping/pong IDs and handles timeouts and disconnections |
 | `p2p/main.mjs` | Bare entry point; answers local pings and starts discovery when configured |
@@ -47,10 +47,18 @@ This diagram covers local IPC only. Opt-in remote connections are described in
   end of the local stream. The runtime is supplied by the transitive
   `bare-sidecar` dependency, not a separately installed global tool.
 - **Hyperswarm** discovers peers and supplies encrypted connections when
-  `PEERARCADE_TOPIC` is configured. Without a topic, no swarm is constructed.
+  `PEERARCADE_TOPIC` is configured. Without a topic, no developer swarm is constructed; normal room actions start their own swarm.
 
 The game engine uses CommonJS and has no Electron, Bare, or networking imports.
 Its public API remains documented in [games/README.md](../games/README.md).
+
+## Rooms
+
+The same four-layer path now supports fixed room operations. Main creates and
+validates invitations, while Bare owns discovery, role handshakes, admission, and
+cleanup. The renderer only displays status and invokes allowed operations. See
+[rooms](rooms.md) for the protocol, files, bearer-secret boundary, and live tests.
+Room mode and environment-configured developer discovery are mutually exclusive.
 
 ## A health check, step by step
 
@@ -83,8 +91,8 @@ IPC means inter-process communication. Here it connects processes belonging to
 one application on one machine. It requires no room, remote identity, or peer.
 A successful pong confirms local worker responsiveness only.
 
-Opt-in Hyperswarm discovery is now implemented in Issue #6. Future v0.2 work
-will introduce rooms, synchronized state, and a multiplayer interface. Those capabilities are listed separately in
+Hyperswarm discovery and minimal rooms are implemented in Issues #6–#7. Future
+v0.2 work will introduce synchronized state and the full multiplayer game interface. Those capabilities are listed separately in
 the [roadmap](../README.md#next-milestone-v02--p2p-multiplayer). They are not
 implemented by installing Hyperswarm or by placing a worker under `p2p/`.
 
@@ -93,7 +101,7 @@ implemented by installing Hyperswarm or by placing a worker under `p2p/`.
 | Decision | Benefit and tradeoff |
 | --- | --- |
 | Separate renderer, preload, main, and worker | Keeps privileged APIs out of the page and future networking isolated; adds explicit message boundaries |
-| One fixed, payload-free health API | Small interface to validate; new capabilities will require deliberate API additions |
+| Fixed health and room APIs | Explicit operations and argument validation; no arbitrary IPC channels exposed |
 | Sandbox and context isolation enabled; Node integration disabled | Limits renderer privileges; the renderer must use the preload bridge |
 | Local-only script/style CSP; navigation and new windows blocked | Suits the current local window; future external content needs explicit design |
 | Numbered, newline-delimited ping/pong | No messaging dependency; intentionally limited to health checks rather than general game messages |
