@@ -96,6 +96,10 @@ state. Guest state is synchronized before its room status becomes connected.
 
 ## Tests and evidence
 
+The evidence below records Issue #19. See [Issue #20 resilience QA](qa-v0.3.md)
+for the expanded three-interruption, uncertain-move, retry-exhaustion and cleanup
+checks and the current release recommendation.
+
 Commands (Node 22.23.3/npm 11.9.0 on macOS 14.5 arm64):
 
 ```sh

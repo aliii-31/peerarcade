@@ -105,10 +105,17 @@ IPC means inter-process communication. Here it connects processes belonging to
 one application on one machine. It requires no room, remote identity, or peer.
 A successful pong confirms local worker responsiveness only.
 
-Hyperswarm discovery and minimal rooms are implemented in Issues #6–#7. Future
-The [multiplayer interface](game-interface.md) now uses fixed preload calls; [state synchronization](game-sync.md) is implemented. Those capabilities are listed separately in
-the [roadmap](../README.md#next-milestone-v02--p2p-multiplayer). They are not
-implemented by installing Hyperswarm or by placing a worker under `p2p/`.
+Hyperswarm discovery, invitation-based rooms, [state synchronization](game-sync.md)
+and the [multiplayer interface](game-interface.md) are implemented. Local IPC
+carries validated requests to Bare; only Bare owns the encrypted peer sockets.
+The host runs the rules engine and distributes accepted game history.
+
+[Temporary recovery](reconnection.md) retains the authoritative game in memory
+while transport is unavailable. A session-bound credential reserves the original
+guest's slot. Bounded retries restore the same match or fail cleanly; they do not
+provide persistence, host migration, or process-restart recovery. Both peers must
+use protocol v2, which is incompatible with v0.2.0's protocol v1. The
+[v0.3 QA report](qa-v0.3.md) records actual coverage and the pending desktop check.
 
 ## Decisions and tradeoffs
 

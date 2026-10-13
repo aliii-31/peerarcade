@@ -1,7 +1,7 @@
 # PeerArcade
 
-PeerArcade is a desktop mini-arcade being built toward peer-to-peer multiplayer
-with Holepunch technology. The current development branch builds on the **v0.1 game foundation** with:
+PeerArcade is a peer-to-peer desktop mini-arcade built with Holepunch technology.
+The **v0.3.0 release candidate** builds on v0.2 multiplayer with:
 
 - An Electron window with a local Bare-worker health check.
 - A restricted renderer → preload → main → worker communication path.
@@ -76,8 +76,9 @@ isolated bridge/renderer behavior. It is not an automated desktop UI test.
 ## Documentation
 
 - [Temporary connection recovery](docs/reconnection.md)
-- [v0.2 release QA and manual sign-off](docs/qa-v0.2.md)
-- [Draft v0.2.0 release notes](docs/releases/v0.2.0.md)
+- [v0.3 resilience QA and pending desktop verification](docs/qa-v0.3.md)
+- [Unpublished v0.3.0 release notes](docs/releases/v0.3.0.md)
+- [Historical v0.2 QA and manual sign-off](docs/qa-v0.2.md)
 
 - [Play and manually verify the desktop game](docs/game-interface.md)
 - [Game-state synchronization and protocol](docs/game-sync.md)
@@ -87,16 +88,25 @@ isolated bridge/renderer behavior. It is not an automated desktop UI test.
 - [Tic-Tac-Toe state model and API](games/README.md)
 - [Verification evidence and limitations](docs/verification.md)
 
-## Next milestone: v0.2 — P2P Multiplayer
+## Release preparation: v0.3 — Reliability & Recovery
 
-Peer discovery, minimal rooms, game synchronization and the desktop board from Issues #6–#9 are implemented; the remaining multiplayer
-features are **planned, not implemented**:
+Temporary connection recovery is implemented. The original host retains the match
+in memory and validates a returning guest's session credential before restoring
+accepted state. Both original workers must remain alive and use protocol v2.
 
-1. Implemented: [Peer discovery with Hyperswarm (#6)](https://github.com/aliii-31/peerarcade/issues/6)
-2. Implemented: [Create and join rooms (#7)](https://github.com/aliii-31/peerarcade/issues/7)
-3. Implemented: [Synchronize game state (#8)](https://github.com/aliii-31/peerarcade/issues/8)
-4. Implemented: [Build a multiplayer game interface (#9)](https://github.com/aliii-31/peerarcade/issues/9)
-5. [End-to-end multiplayer QA (#10)](https://github.com/aliii-31/peerarcade/issues/10)
+The [QA report](docs/qa-v0.3.md) separates automated checks, real Hyperswarm tests,
+and desktop evidence. **Release recommendation: NO-GO pending maintainer desktop
+recovery verification.** The earlier v0.2 sign-off does not cover reconnection.
+No v0.3 release is published by this preparation work.
 
-The v0.1 foundation makes that work possible; local ping/pong does not prove
-peer discovery, internet connectivity, or multiplayer reliability.
+Additional repeatable checks:
+
+```sh
+npm run test:rooms:network
+npm run test:desktop:profiles
+npm audit
+```
+
+The network harness injects faults into real sockets on one machine. The profile
+check opens production windows and checks startup/exit; neither replaces manual
+reconnection gameplay. Follow the [manual checklist](docs/qa-v0.3.md#manual-desktop-checklist).

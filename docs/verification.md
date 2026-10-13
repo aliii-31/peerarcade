@@ -1,4 +1,5 @@
-> Release readiness: [v0.2 QA report](qa-v0.2.md) — GO following maintainer manual desktop sign-off; see the report for evidence limits.
+> Current release readiness: [v0.3 QA report](qa-v0.3.md) — NO-GO pending maintainer desktop recovery verification.
+> Historical v0.2 sign-off: [v0.2 QA report](qa-v0.2.md); it does not verify recovery.
 
 > Current UI verification: [Issue #9 desktop interface](game-interface.md#issue-9-verification).
 
@@ -87,7 +88,7 @@ this local check.
 - The Tic-Tac-Toe rules work as a standalone module. Connect Four is not implemented.
 - Successful local ping/pong does not test internet connectivity, NAT traversal,
   remote peers, or multiplayer reliability.
-- v0.2 multiplayer work is planned in [Issues #6–#10](../README.md#next-milestone-v02--p2p-multiplayer).
+- v0.2 multiplayer work is planned in [Issues #6–#10](https://github.com/aliii-31/peerarcade/issues/10).
 
 This record supports review of the v0.1 foundation documentation. It does not
 claim that a tagged release has been published.
