@@ -1,3 +1,5 @@
+> Release readiness: [v0.2 QA report](qa-v0.2.md) — NO-GO until manual desktop sign-off.
+
 > Current UI verification: [Issue #9 desktop interface](game-interface.md#issue-9-verification).
 
 > Current Issue #8 results: [game synchronization verification](game-sync.md#verification-and-limitations).
