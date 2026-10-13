@@ -1,7 +1,8 @@
+import { createGameSync } from './game-sync.mjs'
 import { startDiscovery } from './discovery.mjs'
 import { hex, nonce, proof, verifyProof, isHex32 } from './room-proof.mjs'
 
-// One room and one admitted remote participant per worker. No game messages.
+// One room and one admitted remote participant per worker.
 export function createRooms({ createSwarm, log = () => {}, joinTimeout = 45000, handshakeTimeout = 10000, refreshInterval = 5000 }) {
   let state = { status: 'idle', role: null, message: 'Not in a room' }
   let session = null
@@ -15,6 +16,7 @@ export function createRooms({ createSwarm, log = () => {}, joinTimeout = 45000, 
     const old = session
     session = null // Ignore callbacks from the old swarm before awaiting cleanup.
     if (old) {
+      old.game?.close()
       clearTimeout(old.deadline)
       clearInterval(old.refresh)
       for (const socket of old.sockets) socket.destroy()
@@ -37,6 +39,8 @@ export function createRooms({ createSwarm, log = () => {}, joinTimeout = 45000, 
       if (!current()) return
       clearTimeout(room.deadline)
       clearInterval(room.refresh)
+      room.game?.close()
+      room.game = null
       publish('error', message)
       for (const socket of room.sockets) socket.destroy()
       room.discovery?.stop().catch(() => {})
@@ -63,6 +67,8 @@ export function createRooms({ createSwarm, log = () => {}, joinTimeout = 45000, 
         room.sockets.delete(socket)
         if (!current() || room.candidate !== socket) return
         room.candidate = null
+        room.game?.close()
+        room.game = null
         if (state.status === 'error') return
         if (room.role === 'host') publish('waiting', 'Guest left; waiting for a guest')
         else {
@@ -80,15 +86,17 @@ export function createRooms({ createSwarm, log = () => {}, joinTimeout = 45000, 
       socket.on('data', (chunk) => {
         if (!current() || room.candidate !== socket) return
         input += chunk.toString()
-        if (input.length > 1024) { socket.destroy(); return }
         let end
         while ((end = input.indexOf('\n')) !== -1) {
+          if (end > 1024) { socket.destroy(); return }
           const line = input.slice(0, end)
           input = input.slice(end + 1)
           let message
           try { message = JSON.parse(line) } catch { socket.destroy(); return }
           if (!message || typeof message !== 'object') { socket.destroy(); return }
-          if (role === 'host' && stage === 'hello' && message.type === 'join' && message.version === 1 && verifyProof(message.proof, secret, 'guest', challenge, hostKey, guestKey)) {
+          if (stage === 'connected' && ['game-move', 'game-state'].includes(message.type)) {
+            try { room.game.receive(message) } catch { socket.destroy(); return }
+          } else if (role === 'host' && stage === 'hello' && message.type === 'join' && message.version === 1 && verifyProof(message.proof, secret, 'guest', challenge, hostKey, guestKey)) {
             stage = 'ack'
             send({ type: 'accepted', role: 'host', version: 1, proof: proof(secret, 'host', challenge, hostKey, guestKey) })
           } else if (role === 'guest' && stage === 'hello' && message.type === 'challenge' && message.version === 1 && isHex32(message.challenge)) {
@@ -104,12 +112,16 @@ export function createRooms({ createSwarm, log = () => {}, joinTimeout = 45000, 
             clearTimeout(room.deadline)
             clearInterval(room.refresh)
             publish('connected', 'Guest connected')
-            send({ type: 'ready', role: 'host', version: 1 })
-          } else if (role === 'guest' && stage === 'ready' && message.type === 'ready' && message.role === 'host' && message.version === 1) {
+            const matchId = nonce()
+            room.game = createGameSync({ role, matchId, send })
+            send({ type: 'ready', role: 'host', version: 1, matchId })
+            room.game.announce()
+          } else if (role === 'guest' && stage === 'ready' && message.type === 'ready' && message.role === 'host' && message.version === 1 && isHex32(message.matchId)) {
             stage = 'connected'
             clearTimeout(timer)
             clearTimeout(room.deadline)
             clearInterval(room.refresh)
+            room.game = createGameSync({ role, matchId: message.matchId, send })
             publish('connected', 'Host connected')
           } else if (role === 'guest' && message.type === 'reject') {
             fail(message.reason === 'full' ? 'Room is full. Leave to try another room.' : 'Room rejected the invitation.')
@@ -119,6 +131,7 @@ export function createRooms({ createSwarm, log = () => {}, joinTimeout = 45000, 
             return
           }
         }
+        if (input.length > 1024) socket.destroy()
       })
       if (role === 'host') send({ type: 'challenge', version: 1, challenge })
       socket.resume()
@@ -149,5 +162,11 @@ export function createRooms({ createSwarm, log = () => {}, joinTimeout = 45000, 
     return getState()
   }
 
-  return { start, leave, getState }
+  return { start, leave, getState,
+    gameState: () => session?.game?.getState() || null,
+    move: request => {
+      if (state.status !== 'connected' || !session?.game) return Promise.reject(new Error('No connected match'))
+      return session.game.requestMove(request)
+    }
+  }
 }

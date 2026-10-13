@@ -47,6 +47,43 @@ async function waitState(peer, status) {
   }
   throw new Error(`Timed out waiting for ${status}`)
 }
+async function sameGame(host, guest) {
+  const until = Date.now() + 5000
+  while (Date.now() < until) {
+    const h = await host.call('gameState'), g = await guest.call('gameState')
+    if (h && g && JSON.stringify(h) === JSON.stringify(g)) return h
+    await delay(50)
+  }
+  throw new Error('Peers did not converge on accepted game state')
+}
+let moveId = 0
+async function play(host, guest, positions, status, winner) {
+  let state = await sameGame(host, guest)
+  assert.equal(state.revision, 0)
+  assert.deepEqual(state.board, Array(9).fill(null))
+  const request = position => ({ matchId: state.matchId, revision: state.revision, requestId: ++moveId, position })
+  await assert.rejects(guest.call('move', request(0)), /turn/)
+  for (const [index, position] of positions.entries()) {
+    const peer = index % 2 ? guest : host
+    const proposal = request(position)
+    await peer.call('move', proposal)
+    state = await sameGame(host, guest)
+    assert.equal(state.revision, index + 1)
+    assert.equal(state.board[position], index % 2 ? 'O' : 'X')
+    if (index === 1) {
+      await guest.call('move', proposal)
+      assert.deepEqual(await sameGame(host, guest), state)
+      await assert.rejects(host.call('move', request(positions[0])), /occupied/)
+      await assert.rejects(host.call('move', { ...request(8), revision: 0 }), /Stale revision/)
+    }
+  }
+  assert.equal(state.status, status)
+  assert.equal(state.winner, winner)
+  await assert.rejects(guest.call('move', request(8)), /complete/)
+  assert.deepEqual(await sameGame(host, guest), state)
+  console.log(`PASS: real synchronized ${status}, winner ${winner}, revision ${state.revision}; rejected and duplicate moves leave state unchanged`)
+  return state
+}
 async function run() {
   const host = await peer('host'), guest = await peer('guest')
   await assert.rejects(guest.call('join', 'invalid'), /Invalid invitation/)
@@ -58,6 +95,7 @@ async function run() {
   assert.equal((await host.call('health')).reply, 'pong')
   assert.equal((await guest.call('health')).reply, 'pong')
   console.log('PASS: host/guest roles and health across two real Electron/Bare processes')
+  const oldMatch = await play(host, guest, [0,3,1,4,2], 'won', 'X')
   const extra = await peer('extra')
   await extra.call('join', created.invitation)
   assert.match((await waitState(extra, 'error')).message, /full/)
@@ -68,8 +106,16 @@ async function run() {
   await guest.call('leave')
   await waitState(host, 'waiting')
   assert.equal((await guest.call('state')).status, 'idle')
+  assert.equal(await guest.call('gameState'), null)
+  assert.equal(await host.call('gameState'), null)
+  await assert.rejects(guest.call('move', { matchId: oldMatch.matchId, revision: 5, requestId: ++moveId, position: 8 }), /No connected/)
   await guest.call('join', created.invitation)
   await Promise.all([waitState(host, 'connected'), waitState(guest, 'connected')])
+  const fresh = await sameGame(host, guest)
+  assert.notEqual(fresh.matchId, oldMatch.matchId)
+  assert.equal(fresh.revision, 0)
+  await assert.rejects(host.call('move', { matchId: oldMatch.matchId, revision: 0, requestId: ++moveId, position: 0 }), /Stale match/)
+  await play(host, guest, [0,1,2,4,3,5,7,6,8], 'draw', null)
   await host.call('leave')
   await waitState(guest, 'departed')
   await guest.call('leave')
